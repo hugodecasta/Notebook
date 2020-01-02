@@ -1,0 +1,9 @@
+[submodule "GoogleSignInJS"]
+	path = GoogleSignInJS
+	url = https://github.com/hugodecasta/GoogleSignInJS
+[submodule "BoolMaster"]
+	path = BoolMaster
+	url = https://github.com/hugodecasta/BoolMaster
+[submodule "Mirror"]
+	path = Mirror
+	url = https://github.com/hugodecasta/Mirror
