@@ -14,18 +14,70 @@ body {
 .menu {
     background: #7e57c2;
     height: 76px;
+    width: 100%;
+    top: 0;
+    position: fixed;
+    z-index: 1;
+    border-radius: 0px 0px 38px 0px;
 }
 
 /* ------------------------------------------------- */
-
-.mdl-button--flat, .mdl-button--icon {
+.add {
+    position: absolute;
     color: #fff !important;
-    margin-top:17px;
-    margin-left:10px;
+    background: #7e57c2 !important;
+    margin:10px;
 }
-.mdl-button--fab {
-    background: #fff !important;
-    color: #7e57c2 !important;
+.add_contain {
+    position: relative;
+    left:0px;
+    top:0px;
+    background: #fff;
+    width:38px;
+    height:77px;
+}
+.add_contain::before {
+    content: ' ';
+    position: absolute;
+    left:0px;
+    top:0px;
+    background: #fff;
+    width:78px;
+    border-radius: 1000px;
+    height:78px;
+}
+.inter_bar {
+    position: absolute;
+    width: calc(28px + 10px + 38px);
+    height: 38.5px;
+    top: calc(10px + 28px);
+    left: 38px;
+    background: #fff;
+}
+.inter_bar::after {
+    content: ' ';
+    position: absolute;
+    left:calc(100% - 36px);
+    top:-38px;
+    background: #7e57c2;
+    width:76px;
+    height:76px;
+    border-radius: 1000px;
+}
+.search {
+    position: absolute;
+    left:106px;
+    border:none;
+    border-bottom: 1px solid #fff;
+    top: 25px;
+    background: transparent;
+    font-size: 20px;
+    color:#fff;
+    width: calc(100% - 76px - 106px);
+}
+/* ------------------------------------------------- */
+.spacer {
+    height: calc(76px + 10px);
 }
 /* ------------------------------------------------- */
 .note {
@@ -33,19 +85,45 @@ body {
     font-size: 20px;
 }
 .title {
-    background: #ddd;
-    padding: 5px;
+    background: #eee;
+    padding: 10px;
     position: relative;
+    width:calc(100% - 60px);
+    margin-left:30px;
+    border-radius: 1000px;
 }
 .delete {
     position: absolute;
-    right:0px;
-    top:0px;
+    margin:0px;
+    right:5px;
+    top:6px;
+    color:#aaa !important;
 }
 .text {
-    padding:10px;
+    padding:20px;
 }
 .input {
     width:0px;
     height:0px;
+    opacity: 0;
+}
+.text p,ul,ol {
+    font-size: 17px;
+}
+/* ------------------------------------------------- */
+.appear {
+    opacity:0;
+    animation: appear 0.3s forwards;
+}
+@keyframes appear {
+    0%{opacity:0;transform:scale(1) translateY(10px);}
+    100%{opacity:1;transform:scale(1) translateY(0px);}
+}
+.disappear {
+    opacity:1;
+    animation: disappear 0.5s forwards;
+}
+@keyframes disappear {
+    0%{opacity:1;transform:scale(1);}
+    100%{opacity:0;transform:scale(0.9);}
 }

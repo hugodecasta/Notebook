@@ -3,11 +3,8 @@
 // ------------------------------------------- TO CHANGE
 
 function round_button(icon,type='fab',more_class='') {
-    let btn = $('<button>').addClass(more_class)
-    .addClass('mdl-button mdl-js-button')
-    .addClass('mdl-button--'+type+' mdl-js-ripple-effect')
-    let icon_div =$('<i>').addClass('material-icons').html(icon)
-    btn.append(icon_div)
+    let btn = $('<button>').addClass('mdl-button mdl-js-button mdl-button--'+type+' '+more_class)
+    .append($('<i>').addClass('material-icons').html(icon))
     return btn
 }
 
@@ -70,20 +67,38 @@ function create_global_map(note_maps) {
 
 async function notes_engine(search_string, map) {
     let words = split_text(search_string)
-    let score_map = {}
+    let score_map = null
+
     for(let word of words) {
+        let word_score_map = {}
         for(let word_map in map) {
             if(word_map.includes(word)) {
                 for(let id in map[word_map]) {
                     let word_id_score = map[word_map][id]
-                    if(!score_map.hasOwnProperty(id)) {
-                        score_map[id] = 0
+                    if(!word_score_map.hasOwnProperty(id)) {
+                        word_score_map[id] = 0
                     }
-                    score_map[id] += word_id_score
+                    word_score_map[id] += word_id_score
                 }
             }
         }
+        if(score_map == null) {
+            score_map = word_score_map
+            continue
+        }
+        let to_del = []
+        for(let id in score_map) {
+            if(word_score_map.hasOwnProperty(id)) {
+                score_map[id] += word_score_map[id]
+            } else {
+                to_del.push(id)
+            }
+        }
+        for(let id of to_del) {
+            delete score_map[id]
+        }
     }
+
     let score_array = []
     for(let id in score_map) {
         let score = score_map[id]
@@ -122,11 +137,17 @@ function create_note() {
 
 // ------------------------------------------ MIRROR
 
+var local_user_conn = null
+
 async function get_user_connector() {
+    if(local_user_conn != null) {
+        return local_user_conn
+    }
     let profile = await gsi.get_profile_data()
     let connect_name = 'user'+profile.id
     await mirror.create_base(connect_name,{notes:{},current_search_string:''})
-    return await mirror.connect(connect_name)
+    local_user_conn = await mirror.connect(connect_name)
+    return local_user_conn
 }
 
 async function get_note_connector(note_id) {
@@ -167,7 +188,7 @@ async function get_disp_note_id(note_id) {
 
     let title = $('<div>').addClass('title')
     let date = $('<div>').addClass('date')
-    let del = $('<button>').html('delete').addClass('delete')
+    let del = round_button('cancel','icon','delete')
     title.append(date).append(del)
     let text = $('<div>').addClass('text')
     let input = $('<textarea>').addClass('input')
@@ -175,17 +196,29 @@ async function get_disp_note_id(note_id) {
 
     // --- FCT
 
+    function disp_marked() {
+        let mark = marked(input.val())
+        for(let hnum of [5,4,3,2,1]) {
+            let regex = 'h'+hnum
+            let repla = 'h'+(hnum+2)
+            mark = mark
+            .replace(new RegExp('<'+regex,'g'), '<'+repla)
+            .replace(new RegExp(regex+'>','g'), repla+'>')
+        }
+        text.html(mark)
+    }
+
     input.val(note_connector.get([],'text'))
-    text.html((input.val()))
+    disp_marked()
 
     // --- CLICK
 
-    del.click(function() {
-        note_connector.delete()
+    note_jQ.click(function() {
+        input.focus()
     })
 
-    text.click(function() {
-        input.focus()
+    del.click(function() {
+        note_connector.delete()
     })
 
     input.keyup(function(e) {
@@ -194,15 +227,8 @@ async function get_disp_note_id(note_id) {
     })
 
     input.bind('input propertychange', function() {
-        text.html((input.val()))
+        disp_marked()
     })
-    
-    input.keydown(function(e) {
-        setTimeout(function() {
-            let cur_pos_end = input[0].selectionEnd
-            console.log(cur_pos_end)
-        })
-    });
 
     // --- EVT
 
@@ -238,29 +264,51 @@ async function display_idea() {
 
         let bar = $('<div>').addClass('menu')
 
-        let add = $('<button>').html('ADD')
-        let input = $('<input>')
+        let add_contain = $('<div>').addClass('add_contain')
+        let add = round_button('create','fab','add')
+        let input = $('<input>').addClass('search')
 
-        let notes_space = $('<div>')
+        let inter_bar = $('<div>').addClass('inter_bar')
 
-        bar.append(add).append(input)
+        add_contain.append(add)
+
+        let notes_space = $('<div>').addClass('note_space')
+
+        bar.append(inter_bar).append(add_contain).append(input)
 
         $('.container').append(bar).append(notes_space)
 
         // --- FCT
 
         async function handle_string(search_string) {
-            console.log(search_string)
+            if(search_string == '') {
+                return
+            }
+            if(search_string == '-') {
+                notes_space.html('')
+                return
+            }
+            if(search_string == '*') {
+                await display_notes(Object.keys(user_connector.get([],'notes')))
+                return
+            }
             if(search_string.length < 2) {
                 return
             }
             let global_map = await create_global_map(user_connector.get([],'notes'))
-            console.log(global_map)
             let ids = await notes_engine(search_string, global_map)
-            let connectors = await get_multi_note_connector(ids)
-            let space = $('<div>')
+            await display_notes(ids)
+        }
+
+        async function display_notes(ids) {
+            await get_multi_note_connector(ids)
+            let space = $('<div>').addClass('space')
             for(let id of ids) {
-                let jq = await get_disp_note_id(id)
+                let jq = (await get_disp_note_id(id))
+                .addClass('appear')
+                setTimeout(function() {
+                    jq.removeClass('appear')
+                },400)
                 space.append(jq)
             }
             notes_space.html(space)
@@ -283,21 +331,24 @@ async function display_idea() {
             let new_note = await add_new_note()
             await include_note_id(new_note.id)
             let date = timestamp_to_date(new_note.date)
-            console.log('set')
             user_connector.set([],'current_search_string',date)
+            user_connector.trigger('set',[],'current_search_string',date)
         })
 
         input.keyup(function() {
-            let notes_string = input.val().toLowerCase()
+            let notes_string = input.val()
             user_connector.set([],'current_search_string',notes_string)
         })
 
         // --- EVT
 
+        let handle_to = null
         user_connector.on_prop('set',[],'current_search_string',function(search_string) {
-            console.log('read')
             input.val(search_string)
-            handle_string(search_string)
+            clearTimeout(handle_to)
+            handle_to = setTimeout(function() {
+                handle_string(search_string)
+            },200)
         })
 
     })
