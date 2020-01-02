@@ -1,0 +1,51 @@
+body {
+    margin:0px;
+    padding:0px;
+    background:#fff;
+    font-family: 'Roboto', sans-serif;
+    font-size: 25px;
+    color:rgb(56, 142, 255);
+    line-height: normal;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ------------------------------------------------- */
+
+.menu {
+    background: #7e57c2;
+    height: 76px;
+}
+
+/* ------------------------------------------------- */
+
+.mdl-button--flat, .mdl-button--icon {
+    color: #fff !important;
+    margin-top:17px;
+    margin-left:10px;
+}
+.mdl-button--fab {
+    background: #fff !important;
+    color: #7e57c2 !important;
+}
+/* ------------------------------------------------- */
+.note {
+    color: #555;
+    font-size: 20px;
+}
+.title {
+    background: #ddd;
+    padding: 5px;
+    position: relative;
+}
+.delete {
+    position: absolute;
+    right:0px;
+    top:0px;
+}
+.text {
+    padding:10px;
+}
+.input {
+    width:0px;
+    height:0px;
+}
