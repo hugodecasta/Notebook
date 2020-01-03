@@ -311,13 +311,18 @@ async function get_disp_note_id(note_id) {
         date.html(print_date)
     })
 
-    note_connector.on_prop('set',[],'text',function(new_text) {
+    note_connector.on_prop('set',[],'text',function() {
         let map = create_word_map(note_connector.get_base())
         user_connector.set(['notes',note_id],'map',map)
     })
 
-    user_connector.on_prop('del',['notes'],note_id,function(new_text) {
-        note_jQ.addClass('disappear')
+    user_connector.on_prop('del',['notes'],note_id,function() {
+        let height = note_jQ.outerHeight()
+        let container = $('<div>').addClass('note_disappear_container')
+        container.css('height',height+'px')
+        .append(note_jQ.clone())
+        note_jQ.replaceWith(container)
+        
         setTimeout(function() {
             note_jQ.remove()
         },500)
