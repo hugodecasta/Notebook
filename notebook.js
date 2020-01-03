@@ -16,6 +16,20 @@ function text_button(text,type='raised',more_class='') {
     return btn
 }
 
+function set_long_click(jq,cb) {
+    var pressTimer;
+    function start() {
+        pressTimer = window.setTimeout(cb,1000)
+        return false
+    }
+    function end() {
+        clearTimeout(pressTimer)
+        return false
+    }
+    jq.taphold(cb)
+    jq.mousedown(start).mouseup(end)
+}
+
 // ------------------------------------------ VAR
 
 let gsi = new GoogleSignIn('222256535269-68ujsdblb6n23q8je8d2knlpsbjfl88g.apps.googleusercontent.com')
@@ -135,10 +149,20 @@ function create_note() {
     return note
 }
 
+async function create_sharing_notes(note_ids, search_string, pre_name='') {
+    let sharing_connector = await get_sharing_connector()
+    let new_name = prompt('enter the sharing token',pre_name)
+    let obj = {ids:{},search_string:search_string}
+    for(let id of note_ids) {
+        obj.ids[id] = true
+    }
+    sharing_connector.set([],new_name,obj)
+    return new_name
+}
+
 // ------------------------------------------ MIRROR
 
 var local_user_conn = null
-
 async function get_user_connector() {
     if(local_user_conn != null) {
         return local_user_conn
@@ -148,6 +172,10 @@ async function get_user_connector() {
     await mirror.create_base(connect_name,{notes:{},current_search_string:''})
     local_user_conn = await mirror.connect(connect_name)
     return local_user_conn
+}
+
+async function get_sharing_connector() {
+    return await mirror.connect('sharing_connector')
 }
 
 async function get_note_connector(note_id) {
@@ -188,11 +216,26 @@ async function get_disp_note_id(note_id) {
 
     let title = $('<div>').addClass('title')
     let date = $('<div>').addClass('date')
-    let del = round_button('cancel','icon','delete')
-    title.append(date).append(del)
+    title.append(date)
+    
     let text = $('<div>').addClass('text')
     let input = $('<textarea>').addClass('input')
     note_jQ.append(title).append(input).append(text)
+
+    let is_shared = user_connector.get(['notes',note_id],'is_shared')
+
+    let link = null
+    let del = null
+    let delink = null
+
+    if(!is_shared) {
+        link = round_button('link','icon','link')
+        del = round_button('cancel','icon','delete')
+        title.append(link).append(del)
+    } else {
+        delink = round_button('link_off','icon','delink')
+        title.append(delink)
+    }
 
     // --- FCT
 
@@ -209,7 +252,7 @@ async function get_disp_note_id(note_id) {
         text.html(mark)
     }
 
-    input.val(note_connector.get([],'text'))
+    input.val(note_connector.get_direct('text'))
     disp_marked()
 
     // --- CLICK
@@ -217,14 +260,34 @@ async function get_disp_note_id(note_id) {
     note_jQ.click(function() {
         input.focus()
     })
+    
+    if(!is_shared) {
 
-    del.click(function() {
-        note_connector.delete()
-    })
+        link.click(async function() {
+            let date = timestamp_to_date(note_connector.get_direct('date'))
+            let sharing_token = await create_sharing_notes([note_id],date,note_id)
+            if(sharing_token != null) {
+                alert('your friend might longtap the "create" button to enter the token')
+            }
+        })
+    
+        del.click(function() {
+            if(confirm('delete this note ?')) {
+                note_connector.delete()
+            }
+        })
+
+    } else {
+
+        delink.click(function() {
+            user_connector.del(['notes'],note_id)
+        })
+
+    }
 
     input.keyup(function(e) {
         let txt = input.val()
-        note_connector.set([],'text',txt)
+        note_connector.set_direct('text',txt)
     })
 
     input.bind('input propertychange', function() {
@@ -240,14 +303,17 @@ async function get_disp_note_id(note_id) {
 
     note_connector.on_prop('set',[],'text',function(new_text) {
         let map = create_word_map(note_connector.get_base())
-        user_connector.set(['notes'],note_id,map)
+        user_connector.set(['notes',note_id],'map',map)
     })
 
-    note_connector.on_event('del_base',function(new_text) {
+    user_connector.on_prop('del',['notes'],note_id,function(new_text) {
         note_jQ.addClass('disappear')
         setTimeout(function() {
             note_jQ.remove()
         },500)
+    })
+
+    note_connector.on_event('del_base',function(new_text) {
         user_connector.del(['notes'],note_id)
     })
 
@@ -262,6 +328,15 @@ async function display_idea() {
 
         let user_connector = await get_user_connector()
 
+        let notes = user_connector.get_direct('notes')
+        for(let id in notes) {
+            let data = notes[id]
+            if(data.hasOwnProperty('map')) {
+                continue
+            }
+            notes[id] = {map:data,is_shared:false}
+        }
+
         // --- JQ
 
         $('.container').html('')
@@ -272,6 +347,8 @@ async function display_idea() {
         let add = round_button('create','fab','add')
         let input = $('<input>').addClass('search')
 
+        let global_link = round_button('link','icon','global_link')
+
         let inter_bar = $('<div>').addClass('inter_bar')
 
         add_contain.append(add)
@@ -280,7 +357,7 @@ async function display_idea() {
 
         bar.append(inter_bar).append(add_contain).append(input)
 
-        $('.container').append(bar).append(notes_space)
+        $('.container').append(bar).append(notes_space).append(global_link)
 
         // --- FCT
 
@@ -293,13 +370,18 @@ async function display_idea() {
                 return
             }
             if(search_string == '*') {
-                await display_notes(Object.keys(user_connector.get([],'notes')))
+                await display_notes(Object.keys(user_connector.get_direct('notes')))
                 return
             }
             if(search_string.length < 2) {
                 return
             }
-            let global_map = await create_global_map(user_connector.get([],'notes'))
+            let notes = user_connector.get_direct('notes')
+            let note_map = {}
+            for(let id in notes) {
+                note_map[id] = notes[id].map
+            }
+            let global_map = await create_global_map(note_map)
             let ids = await notes_engine(search_string, global_map)
             await display_notes(ids)
         }
@@ -323,9 +405,13 @@ async function display_idea() {
             notes_space.html(space)
         }
 
-        async function include_note_id(note_id) {
+        async function include_note_id(note_id,is_shared=false) {
             let connector = await get_note_connector(note_id)
-            user_connector.set(['notes'],note_id,create_word_map(connector.get_base()))
+            let obj = {
+                is_shared:is_shared,
+                map:create_word_map(connector.get_base())
+            }
+            user_connector.set(['notes'],note_id,obj)
         }
 
         async function add_new_note() {
@@ -336,17 +422,44 @@ async function display_idea() {
 
         // --- CLICK
 
-        add.click(async function() {
+        async function add_click() {
             let new_note = await add_new_note()
             await include_note_id(new_note.id)
             let date = timestamp_to_date(new_note.date)
-            user_connector.set([],'current_search_string',date)
-            user_connector.trigger('set',[],'current_search_string',date)
+            user_connector.set_direct('current_search_string',date)
+        }
+
+        add.click(add_click)
+
+        set_long_click(add,async function() {
+            let sharing_connector = await get_sharing_connector()
+            let sharing_token = prompt('shared token')
+            if(sharing_token == null) {
+                return
+            }
+            let shared = sharing_connector.get([],sharing_token,null)
+            if(shared == null) {
+                alert('token incorrect')
+                return
+            }
+            sharing_connector.del_direct(sharing_token)
+            for(let id in shared.ids) {
+                await include_note_id(id,true)
+            }
+            user_connector.set_direct('current_search_string',shared.search_string)
         })
 
         input.keyup(function() {
             let notes_string = input.val()
-            user_connector.set([],'current_search_string',notes_string)
+            user_connector.set_direct('current_search_string',notes_string)
+        })
+
+        global_link.click(async function() {
+            let search_string = input.val()
+            let sharing_token = await create_sharing_notes(pre_ids,search_string,search_string)
+            if(sharing_token != null) {
+                alert('your friend might longtap the "create" button to enter the token')
+            }
         })
 
         // --- EVT
@@ -357,7 +470,11 @@ async function display_idea() {
             clearTimeout(handle_to)
             handle_to = setTimeout(function() {
                 handle_string(search_string)
-            },200)
+            },500)
+        })
+
+        user_connector.on_path('add',['notes'],function() {
+            handle_string(input.val())
         })
 
     })
