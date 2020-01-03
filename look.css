@@ -96,11 +96,12 @@ body {
     position: absolute;
     margin:0px;
     right:5px;
-    top:6px;
+    top:5px;
     color:#aaa !important;
 }
 .text {
     padding:20px;
+    text-align: justify;
 }
 .input {
     width:0px;
@@ -109,6 +110,13 @@ body {
 }
 .text p,ul,ol {
     font-size: 17px;
+}
+/* ------------------------------------------------- */
+.text code {
+    color: #003bff;
+}
+.text a {
+    color:#7e57c2;
 }
 /* ------------------------------------------------- */
 .appear {
