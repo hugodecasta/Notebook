@@ -524,7 +524,9 @@ async function display_idea() {
 
         let handle_to = null
         user_connector.on_prop('set',[],'current_search_string',function(search_string) {
-            input.val(search_string)
+            if(input.val() == '') {
+                input.val(search_string)
+            }
             clearTimeout(handle_to)
             handle_to = setTimeout(function() {
                 handle_string(search_string)
