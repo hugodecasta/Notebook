@@ -245,14 +245,22 @@ async function get_disp_note_id(note_id) {
 
     function disp_marked() {
         let mark = marked(input.val())
-        for(let hnum of [5,4,3,2,1]) {
-            let regex = 'h'+hnum
-            let repla = 'h'+(hnum+2)
-            mark = mark
-            .replace(new RegExp('<'+regex,'g'), '<'+repla)
-            .replace(new RegExp(regex+'>','g'), repla+'>')
+
+        let replacers = {
+            '//check':'{check_box}',
+            '//uncheck':'{check_box_outline_blank}',
+            '<a':'<a target="_blank"',
+            '{(\\w+)}':'<i class="material-icons">$1</i>'
         }
-        mark = mark.replace(new RegExp('<a','g'), '<a target="_blank"')
+        for(let hnum of [5,4,3,2,1]) {
+            replacers['<h'+hnum] = '<h'+(hnum+2)
+            replacers['h'+hnum+'>'] = 'h'+(hnum+2)+'>'
+        }
+
+        for(let from in replacers) {
+            let to = replacers[from]
+            mark = mark.replace(new RegExp(from,'g'), to)
+        }
         text.html(mark)
     }
 
