@@ -76,6 +76,13 @@ body {
     width: calc(100% - 76px - 106px);
 }
 /* ------------------------------------------------- */
+.global_link {
+    color: #7e57c2 !important;
+    position: fixed;
+    right:10px;
+    bottom:10px;
+}
+/* ------------------------------------------------- */
 .spacer {
     height: calc(76px + 10px);
 }
@@ -96,6 +103,20 @@ body {
     position: absolute;
     margin:0px;
     right:5px;
+    top:5px;
+    color:#aaa !important;
+}
+.delink {
+    position: absolute;
+    margin:0px;
+    right:10px;
+    top:5px;
+    color:#aaa !important;
+}
+.link {
+    position: absolute;
+    margin:0px;
+    right:40px;
     top:5px;
     color:#aaa !important;
 }
