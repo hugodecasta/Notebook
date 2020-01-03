@@ -260,10 +260,6 @@ async function get_disp_note_id(note_id) {
     disp_marked()
 
     // --- CLICK
-
-    note_jQ.click(function() {
-        input.focus()
-    })
     
     if(!is_shared) {
 
@@ -306,11 +302,24 @@ async function get_disp_note_id(note_id) {
         disp_marked()
     })
 
+    var clicking = false
+    note_jQ.mousedown(function() {
+        clicking = true
+    })
+
+    note_jQ.mouseup(function() {
+        clicking = false
+        input.focus()
+    })
+
     input.focusin(function() {
         note_jQ.addClass('edit')
     })
 
-    input.focusout(function() {
+    input.focusout(function(e) {
+        if(clicking) {
+            return
+        }
         note_jQ.removeClass('edit')
         note_jQ.removeClass('code_mode')
     })
