@@ -226,14 +226,16 @@ async function get_disp_note_id(note_id) {
 
     let is_shared = user_connector.get(['notes',note_id],'is_shared')
 
+    let code = null
     let link = null
     let del = null
     let delink = null
 
     if(!is_shared) {
+        code = round_button('code','icon','code')
         link = round_button('link','icon','link')
         del = round_button('cancel','icon','delete')
-        title.append(link).append(del)
+        title.append(code).append(link).append(del)
     } else {
         delink = round_button('link_off','icon','delink')
         title.append(delink)
@@ -264,6 +266,14 @@ async function get_disp_note_id(note_id) {
     })
     
     if(!is_shared) {
+
+        code.click(function() {
+            if(note_jQ.hasClass('code_mode')) {
+                note_jQ.removeClass('code_mode')
+            } else {
+                note_jQ.addClass('code_mode')
+            }
+        })
 
         link.click(async function() {
             let date = timestamp_to_date(note_connector.get_direct('date'))
@@ -324,7 +334,7 @@ async function get_disp_note_id(note_id) {
         note_jQ.replaceWith(container)
         
         setTimeout(function() {
-            note_jQ.remove()
+            container.remove()
         },500)
     })
 
