@@ -205,6 +205,7 @@ async function get_disp_note_id(note_id) {
             .replace(new RegExp('<'+regex,'g'), '<'+repla)
             .replace(new RegExp(regex+'>','g'), repla+'>')
         }
+        mark = mark.replace(new RegExp('<a','g'), '<a target="_blank"')
         text.html(mark)
     }
 
@@ -243,7 +244,10 @@ async function get_disp_note_id(note_id) {
     })
 
     note_connector.on_event('del_base',function(new_text) {
-        note_jQ.remove()
+        note_jQ.addClass('disappear')
+        setTimeout(function() {
+            note_jQ.remove()
+        },500)
         user_connector.del(['notes'],note_id)
     })
 
