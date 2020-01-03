@@ -217,10 +217,12 @@ async function get_disp_note_id(note_id) {
     let title = $('<div>').addClass('title')
     let date = $('<div>').addClass('date')
     title.append(date)
+
+    let bottom_spacer = $('<div>').addClass('bottom')
     
     let text = $('<div>').addClass('text')
     let input = $('<textarea>').addClass('input')
-    note_jQ.append(title).append(input).append(text)
+    note_jQ.append(title).append(input).append(text).append(bottom_spacer)
 
     let is_shared = user_connector.get(['notes',note_id],'is_shared')
 
@@ -292,6 +294,14 @@ async function get_disp_note_id(note_id) {
 
     input.bind('input propertychange', function() {
         disp_marked()
+    })
+
+    input.focusin(function() {
+        note_jQ.addClass('edit')
+    })
+
+    input.focusout(function() {
+        note_jQ.removeClass('edit')
     })
 
     // --- EVT
@@ -403,6 +413,11 @@ async function display_idea() {
                 space.append(jq)
             }
             notes_space.html(space)
+            setTimeout(function() {
+                if(ids.length == 1) {
+                    $('.input').focus()
+                }
+            })
         }
 
         async function include_note_id(note_id,is_shared=false) {
