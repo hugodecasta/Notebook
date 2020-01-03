@@ -304,12 +304,22 @@ async function get_disp_note_id(note_id) {
 
     var clicking = false
     note_jQ.mousedown(function() {
-        clicking = true
+        if(clicking === false) {
+            clicking = true
+        }
     })
 
     note_jQ.mouseup(function() {
+        if(clicking) {
+            input.focus()
+        }
         clicking = false
-        input.focus()
+    })
+
+    text.mousedown(function() {
+        if(note_jQ.hasClass('edit')) {
+            clicking = null
+        }
     })
 
     input.focusin(function() {
