@@ -18,7 +18,7 @@ function text_button(text,type='raised',more_class='') {
 
 // ------------------------------------------ VAR
 
-let gsi = new GoogleSignIn('1070660703362-5m1lo7rov7tn5ubo8oti29i7aqvu89ju.apps.googleusercontent.com')
+let gsi = new GoogleSignIn('222256535269-68ujsdblb6n23q8je8d2knlpsbjfl88g.apps.googleusercontent.com')
 let bm = new BoolMaster('BoolMaster/api.php')
 let mirror = new Mirror(bm)
 
@@ -304,7 +304,12 @@ async function display_idea() {
             await display_notes(ids)
         }
 
+        var pre_ids = []
         async function display_notes(ids) {
+            if(JSON.stringify(ids) == JSON.stringify(pre_ids)) {
+                return
+            }
+            pre_ids = ids
             await get_multi_note_connector(ids)
             let space = $('<div>').addClass('space')
             for(let id of ids) {
