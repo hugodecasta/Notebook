@@ -312,6 +312,7 @@ async function get_disp_note_id(note_id) {
 
     input.focusout(function() {
         note_jQ.removeClass('edit')
+        note_jQ.removeClass('code_mode')
     })
 
     // --- EVT
