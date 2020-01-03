@@ -81,46 +81,48 @@ function create_global_map(note_maps) {
 
 async function notes_engine(search_string, map) {
     let words = split_text(search_string)
-    let score_map = null
+
+    let intesect = []
+    let remove = []
 
     for(let word of words) {
-        let word_score_map = {}
-        for(let word_map in map) {
-            if(word_map.includes(word)) {
-                for(let id in map[word_map]) {
-                    let word_id_score = map[word_map][id]
-                    if(!word_score_map.hasOwnProperty(id)) {
-                        word_score_map[id] = 0
-                    }
-                    word_score_map[id] += word_id_score
-                }
+        if(word.includes('!')) {
+            let s_word = word.replace('!','')
+            if(map.hasOwnProperty(s_word)) {
+                remove = remove.concat(Object.keys(map[s_word]))
             }
-        }
-        if(score_map == null) {
-            score_map = word_score_map
             continue
         }
-        let to_del = []
-        for(let id in score_map) {
-            if(word_score_map.hasOwnProperty(id)) {
-                score_map[id] += word_score_map[id]
-            } else {
-                to_del.push(id)
-            }
-        }
-        for(let id of to_del) {
-            delete score_map[id]
+        if(map.hasOwnProperty(word)) {
+            intesect.push(Object.keys(map[word]))
         }
     }
 
-    let score_array = []
-    for(let id in score_map) {
-        let score = score_map[id]
-        score_array.push({id,score})
+    final_array = null
+
+    console.log(intesect)
+
+    for(let array of intesect) {
+        if(final_array == null) {
+            final_array = array
+            continue
+        }
+        console.log(final_array)
+        final_array = final_array.filter(value => array.includes(value))
     }
-    score_array.sort((a, b) => (a.score < b.score) ? 1 : -1)
-    let ids = score_array.map(elm => elm.id)
-    return ids
+
+    if(final_array == null) {
+        final_array = []
+    }
+
+    for(let id of remove) {
+        let index = final_array.indexOf(id)
+        if(index > -1) {
+            final_array.splice(index,1)
+        }
+    }
+
+    return final_array
 }
 
 // ------------------------------------------ DATA
