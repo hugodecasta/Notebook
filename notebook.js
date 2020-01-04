@@ -234,6 +234,9 @@ async function get_disp_note_id(note_id) {
         let mark = marked(input.val())
 
         let replacers = {
+            '#inwork':'{brush}',
+            '#done':'{check}',
+            '#canceled':'{work_off}',
             '//check':'{check_box}',
             '//uncheck':'{check_box_outline_blank}',
             '<a':'<a target="_blank"',
