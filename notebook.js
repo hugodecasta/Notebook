@@ -100,7 +100,7 @@ async function notes_engine(search_string, map) {
             }
             final_array = final_array.filter(val => ar.includes(val))
         }
-        if(final_array.length == 0) {
+        if(final_array==null || final_array.length == 0) {
             return []
         }
     }
@@ -345,7 +345,7 @@ async function get_disp_note_id(note_id) {
         let height = note_jQ.outerHeight()
         let container = $('<div>').addClass('note_disappear_container')
         container.css('height',height+'px')
-        .append(note_jQ.clone())
+        .append(note_jQ.clone().removeClass('edit'))
         note_jQ.replaceWith(container)
         
         setTimeout(function() {
@@ -471,7 +471,11 @@ async function display_idea() {
             let new_note = await add_new_note()
             await include_note_id(new_note.id)
             let date = timestamp_to_date(new_note.date)
-            user_connector.set_direct('current_search_string',date)
+            if(date == input.val()) {
+                handle_string(date)
+            } else {
+                user_connector.set_direct('current_search_string',date)
+            }
         }
 
         add.click(add_click)
@@ -494,9 +498,13 @@ async function display_idea() {
             user_connector.set_direct('current_search_string',shared.search_string)
         })
 
+        let save_search_string = null
         input.keyup(function() {
             let notes_string = input.val()
-            user_connector.set_direct('current_search_string',notes_string)
+            clearTimeout(save_search_string)
+            save_search_string = setTimeout(function() {
+                user_connector.set_direct('current_search_string',notes_string)
+            },500)
         })
 
         global_link.click(async function() {
@@ -509,19 +517,13 @@ async function display_idea() {
 
         // --- EVT
 
-        let handle_to = null
         user_connector.on_prop('set',[],'current_search_string',function(search_string) {
-            if(input.val() == '') {
-                input.val(search_string)
-            }
-            clearTimeout(handle_to)
-            handle_to = setTimeout(function() {
-                handle_string(search_string)
-            },500)
+            input.val(search_string)
+            handle_string(search_string)
         })
 
         user_connector.on_path('add',['notes'],function() {
-            handle_string(input.val())
+            // handle_string(input.val())
         })
 
     })
