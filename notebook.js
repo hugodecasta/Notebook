@@ -1,4 +1,4 @@
-
+'use strict'
 
 // ------------------------------------------- TO CHANGE
 
@@ -82,8 +82,8 @@ function create_global_map(note_maps) {
 async function notes_engine(search_string, map) {
     let words = split_text(search_string)
 
-    let intesect = []
     let remove = []
+    let final_array = null
 
     for(let word of words) {
         if(word.includes('!')) {
@@ -94,33 +94,18 @@ async function notes_engine(search_string, map) {
             continue
         }
         if(map.hasOwnProperty(word)) {
-            intesect.push(Object.keys(map[word]))
+            let ar = Object.keys(map[word])
+            if(final_array == null) {
+                final_array = ar
+            }
+            final_array = final_array.filter(val => ar.includes(val))
+        }
+        if(final_array.length == 0) {
+            return []
         }
     }
 
-    final_array = null
-
-    console.log(intesect)
-
-    for(let array of intesect) {
-        if(final_array == null) {
-            final_array = array
-            continue
-        }
-        console.log(final_array)
-        final_array = final_array.filter(value => array.includes(value))
-    }
-
-    if(final_array == null) {
-        final_array = []
-    }
-
-    for(let id of remove) {
-        let index = final_array.indexOf(id)
-        if(index > -1) {
-            final_array.splice(index,1)
-        }
-    }
+    final_array = final_array.filter(val => !remove.includes(val))
 
     return final_array
 }
