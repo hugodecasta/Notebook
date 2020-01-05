@@ -39,19 +39,18 @@
         <script src="https://code.jquery.com/mobile/1.5.0-rc1/jquery.mobile-1.5.0-rc1.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
         <script>
-            setTimeout(function() {
+            setInterval(function() {
                 $('.ui-loader').remove()
-            },100)
+            },10)
         </script>
 
 
         <script src="GoogleSignInJS/google_signin.js"></script>
-        <script src='BoolMaster/boolMaster.js'></script>
         <script src='Mirror/Mirror.js'></script>
 
         <script src='pwa_main.js'></script>
 
-        <script src='notebook.js'></script>
+        <script type="module" src='notebook.js'></script>
 
     </body>
 

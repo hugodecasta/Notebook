@@ -1,5 +1,7 @@
 'use strict'
 
+import BoolMaster from './BoolMaster/boolMaster.js'
+
 // ------------------------------------------- TO CHANGE
 
 function round_button(icon,type='fab',more_class='') {
